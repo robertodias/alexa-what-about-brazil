@@ -8,7 +8,9 @@
 'use strict';
 
 const Alexa = require('alexa-sdk');
-
+const request = require('request');
+const cheerio = require('cheerio');
+const API_URL = 'http://agenciadenoticias.ibge.gov.br/en/agencia-news';
 const APP_ID = 'amzn1.ask.skill.fe224f06-f8ad-4279-bc27-9f7a53144f8a';
 
 const handlers = {
@@ -46,25 +48,23 @@ exports.handler = function handle(event, context) {
   const alexa = Alexa.handler(event, context);
   alexa.APP_ID = APP_ID;
 
-  const request = require('request');
-  const cheerio = require('cheerio');
-  sourceData = 'http://agenciadenoticias.ibge.gov.br/en/agencia-news.html';
-
-  request(sourceData, function call(error, response, body) {
+  request(API_URL, function call(error, response, body) {
     let facts = [];
     let news = '';
+    let bigNews = '';
+    let bundleNews = 0;
     let $ = '';
     let document;
     let languageStrings = {
       'en': {
         translation: {
           FACTS: [
-            'What about Brazil is not available at the moment, try again later.',
+            'Brazil\'s Economy Review is not available at the moment, try again later.',
           ],
-          SKILL_NAME: 'What about Brazil',
-          GET_FACT_MESSAGE: 'In Brazil this week: ',
-          OUT_FACT_MESSAGE: 'That is it, for more updates about Brazil just ask: What about Brazil.',
-          HELP_MESSAGE: 'You can say tell me what about Brazil, or, you can say exit... What can I help you with?',
+          SKILL_NAME: 'Brazil Economy Review',
+          GET_FACT_MESSAGE: 'In Brazil\'s Economy this week: ',
+          OUT_FACT_MESSAGE: '. And that is it, for more updates and statistics about Brazil just ask: Brazil Economy Review.',
+          HELP_MESSAGE: 'You can say: Brazil Economy Review, or, you can say exit... What can I help you with?',
           HELP_REPROMPT: 'What can I help you with?',
           STOP_MESSAGE: 'Bye.',
         },
@@ -79,15 +79,29 @@ exports.handler = function handle(event, context) {
     // Parse the document body
       $ = cheerio.load( body );
       facts = [];
-      factsList = '';
       news = '';
+      bigNews = '';
+      bundleNews = 3;
 
       $('.lista-noticias__texto').each(function() {
         document = $(this);
         news = document.text().trim();
         news = news.replace('[Retratos]', '');
+        news = news.replace('...', '');
         news = news.replace('\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t', ' ');
-        facts.push(news);
+
+        if (bundleNews > 0) {
+          if (bigNews !== '') {
+            bigNews = bigNews + '. Also in Brazil\'s Economy this week: ' + news;
+          } else {
+            bigNews = news;
+          }
+          bundleNews -= 1;
+        } else {
+          facts.push(bigNews);
+          bigNews = '';
+          bundleNews = 3;
+        }
       });
 
       languageStrings.en.translation.FACTS = facts;
