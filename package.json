@@ -1,5 +1,5 @@
 {
-  "name": "brazilEconomy",
+  "name": "whataboutbrazil",
   "version": "0.0.1",
   "description": "Random Brazil News",
   "main": "index.js",
@@ -8,5 +8,11 @@
     "alexa-sdk": "^1.0.10",
     "cheerio": "^0.19.0",
     "request": "^2.65.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.0.1",
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb": "^16.0.0",
+    "eslint-plugin-import": "^2.7.0"
   }
 }
